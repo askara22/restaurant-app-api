@@ -3,20 +3,21 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:restaurant_app_2/model/restaurant.dart';
-import 'package:restaurant_app_2/pages/restaurant_detail.dart';
+import 'package:restaurant_app_2/data/api/api_service_list.dart';
+import 'package:restaurant_app_2/data/model/list_restaurant.dart';
+import 'package:restaurant_app_2/pages/restaurant_detail_page.dart';
 
-class RestaurantList extends StatefulWidget {
+class RestaurantListPage extends StatefulWidget {
   final String title;
   static const routeName = '/restaurant_list';
 
-  const RestaurantList({Key? key, required this.title}) : super(key: key);
+  const RestaurantListPage({Key? key, required this.title}) : super(key: key);
 
   @override
   _RestaurantListState createState() => _RestaurantListState();
 }
 
-class _RestaurantListState extends State<RestaurantList> {
+class _RestaurantListState extends State<RestaurantListPage> {
   bool _searchBoolean = false;
   List<Restaurant> restaurants = [];
   TextEditingController searchController = TextEditingController();
@@ -25,23 +26,10 @@ class _RestaurantListState extends State<RestaurantList> {
   @override
   void initState() {
     super.initState();
-    loadJsonData();
     searchController.addListener(() {
       setState(() {
         searchQuery = searchController.text;
       });
-    });
-  }
-
-  Future<void> loadJsonData() async {
-    String jsonString =
-        await rootBundle.loadString('assets/local_restaurant.json');
-    final jsonResponse = jsonDecode(jsonString);
-    final List<dynamic> restaurantsJson = jsonResponse['restaurants'];
-    setState(() {
-      restaurants = restaurantsJson
-          .map((json) => Restaurant.fromJson(json as Map<String, dynamic>))
-          .toList();
     });
   }
 
@@ -76,15 +64,26 @@ class _RestaurantListState extends State<RestaurantList> {
                         });
                       })
                 ]),
-      body: filteredRestaurants.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: filteredRestaurants.length,
+      body: FutureBuilder<RestaurantList>(
+        future: fetchRestaurantList(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (snapshot.hasData) {
+            return ListView.builder(
+              itemCount: snapshot.data!.restaurants.length,
               itemBuilder: (context, index) {
-                return _buildRestaurantItem(
-                    context, filteredRestaurants[index]);
+                var restaurant = snapshot.data!.restaurants[index];
+                return _buildRestaurantItem(context, restaurant);
               },
-            ),
+            );
+          } else {
+            return const Center(child: Text('No data'));
+          }
+        },
+      ),
     );
   }
 
@@ -108,7 +107,7 @@ class _RestaurantListState extends State<RestaurantList> {
         leading: ClipRRect(
           borderRadius: BorderRadius.circular(4.0),
           child: Image.network(
-            restaurant.pictureId,
+            'https://restaurant-api.dicoding.dev/images/small/${restaurant.pictureId}',
             width: 100,
             fit: BoxFit.cover,
           ),
@@ -143,8 +142,11 @@ class _RestaurantListState extends State<RestaurantList> {
               ],
             )),
         onTap: () {
-          Navigator.pushNamed(context, RestaurantDetail.routeName,
-              arguments: restaurant);
+          Navigator.pushNamed(
+            context,
+            RestaurantDetailPage.routeName,
+            arguments: restaurant.id,
+          );
         },
       ),
     );
