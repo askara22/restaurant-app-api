@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:restaurant_app_2/data/api/api_service.dart';
 import 'package:restaurant_app_2/data/model/list_restaurant.dart';
 import 'package:restaurant_app_2/pages/restaurant_detail_page.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:connectivity/connectivity.dart';
 
 class RestaurantListPage extends StatefulWidget {
   final String title;
@@ -25,6 +25,13 @@ class _RestaurantListState extends State<RestaurantListPage> {
   @override
   void initState() {
     super.initState();
+    _checkConnectivity();
+    Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
+      setState(() {
+        isConnected = (result != ConnectivityResult.none);
+      });
+    });
+    _loadRestaurantList();
     _restaurantList = ApiService().fetchRestaurantList();
     searchController.addListener(() {
       setState(() {
@@ -35,6 +42,19 @@ class _RestaurantListState extends State<RestaurantListPage> {
           _restaurantList = ApiService().fetchRestaurantList();
         }
       });
+    });
+  }
+
+  Future<void> _checkConnectivity() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    setState(() {
+      isConnected = (connectivityResult != ConnectivityResult.none);
+    });
+  }
+
+  Future<void> _loadRestaurantList() async {
+    setState(() {
+      _restaurantList = ApiService().fetchRestaurantList();
     });
   }
 
@@ -65,37 +85,63 @@ class _RestaurantListState extends State<RestaurantListPage> {
                     })
               ],
       ),
-      body: FutureBuilder(
-        future: _restaurantList,
-        builder: (context, AsyncSnapshot<RestaurantListResult> snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+      body: isConnected ? _buildRestaurantList() : _buildNoInternetUI(),
+    );
+  }
+
+  FutureBuilder<RestaurantListResult> _buildRestaurantList() {
+    return FutureBuilder(
+      future: _restaurantList,
+      builder: (context, AsyncSnapshot<RestaurantListResult> snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+              child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.black54),
+          ));
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (snapshot.hasData) {
+          if (snapshot.data!.restaurants.isEmpty) {
             return const Center(
-                child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.black54),
-            ));
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (snapshot.hasData) {
-            if (snapshot.data!.restaurants.isEmpty) {
-              return const Center(
-                child: Text(
-                  'Please enter the restaurant name or menu name correctly!',
-                  textAlign: TextAlign.center,
-                ),
-              );
-            } else {
-              return ListView.builder(
-                itemCount: snapshot.data!.restaurants.length,
-                itemBuilder: (context, index) {
-                  var restaurant = snapshot.data!.restaurants[index];
-                  return _buildRestaurantItem(context, restaurant);
-                },
-              );
-            }
+              child: Text(
+                'Please enter the restaurant name or menu name correctly!',
+                textAlign: TextAlign.center,
+              ),
+            );
           } else {
-            return const Center(child: Text('No data'));
+            return ListView.builder(
+              itemCount: snapshot.data!.restaurants.length,
+              itemBuilder: (context, index) {
+                var restaurant = snapshot.data!.restaurants[index];
+                return _buildRestaurantItem(context, restaurant);
+              },
+            );
           }
-        },
+        } else {
+          return const Center(child: Text('No data'));
+        }
+      },
+    );
+  }
+
+  Widget _buildNoInternetUI() {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error, size: 64, color: Colors.red),
+          SizedBox(height: 16),
+          Text(
+            'No internet connection',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Please check your internet connection and try again',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 16),
+          ),
+        ],
       ),
     );
   }
