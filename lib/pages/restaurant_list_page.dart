@@ -1,11 +1,9 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:restaurant_app_2/data/api/api_service_list.dart';
+import 'package:restaurant_app_2/data/api/api_service.dart';
 import 'package:restaurant_app_2/data/model/list_restaurant.dart';
 import 'package:restaurant_app_2/pages/restaurant_detail_page.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class RestaurantListPage extends StatefulWidget {
   final String title;
@@ -19,66 +17,81 @@ class RestaurantListPage extends StatefulWidget {
 
 class _RestaurantListState extends State<RestaurantListPage> {
   bool _searchBoolean = false;
-  List<Restaurant> restaurants = [];
   TextEditingController searchController = TextEditingController();
   String searchQuery = '';
+  late Future<RestaurantListResult> _restaurantList;
+  bool isConnected = true;
 
   @override
   void initState() {
     super.initState();
+    _restaurantList = ApiService().fetchRestaurantList();
     searchController.addListener(() {
       setState(() {
         searchQuery = searchController.text;
+        if (searchQuery.isNotEmpty) {
+          _restaurantList = ApiService().searchRestaurants(searchQuery);
+        } else {
+          _restaurantList = ApiService().fetchRestaurantList();
+        }
       });
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    List<Restaurant> filteredRestaurants = restaurants.where((restaurant) {
-      return restaurant.name
-              .toLowerCase()
-              .contains(searchQuery.toLowerCase()) ||
-          restaurant.city.toLowerCase().contains(searchQuery.toLowerCase());
-    }).toList();
-
     return Scaffold(
       appBar: AppBar(
-          title: !_searchBoolean ? Text(widget.title) : _searchTextField(),
-          actions: !_searchBoolean
-              ? [
-                  IconButton(
-                      icon: Icon(Icons.search),
-                      onPressed: () {
-                        setState(() {
-                          _searchBoolean = true;
-                        });
-                      })
-                ]
-              : [
-                  IconButton(
-                      icon: Icon(Icons.clear),
-                      onPressed: () {
-                        setState(() {
-                          _searchBoolean = false;
-                        });
-                      })
-                ]),
-      body: FutureBuilder<RestaurantList>(
-        future: fetchRestaurantList(),
-        builder: (context, snapshot) {
+        title: !_searchBoolean ? Text(widget.title) : _searchTextField(),
+        actions: !_searchBoolean
+            ? [
+                IconButton(
+                    icon: Icon(Icons.search),
+                    onPressed: () {
+                      setState(() {
+                        _searchBoolean = true;
+                      });
+                    })
+              ]
+            : [
+                IconButton(
+                    icon: Icon(Icons.clear),
+                    onPressed: () {
+                      setState(() {
+                        _searchBoolean = false;
+                        searchController.clear();
+                        _restaurantList = ApiService().fetchRestaurantList();
+                      });
+                    })
+              ],
+      ),
+      body: FutureBuilder(
+        future: _restaurantList,
+        builder: (context, AsyncSnapshot<RestaurantListResult> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+                child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.black54),
+            ));
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (snapshot.hasData) {
-            return ListView.builder(
-              itemCount: snapshot.data!.restaurants.length,
-              itemBuilder: (context, index) {
-                var restaurant = snapshot.data!.restaurants[index];
-                return _buildRestaurantItem(context, restaurant);
-              },
-            );
+            if (snapshot.data!.restaurants.isEmpty) {
+              return const Center(
+                child: Text(
+                  'Please enter the restaurant name or menu name correctly!',
+                  textAlign: TextAlign.center,
+                ),
+              );
+            } else {
+              return ListView.builder(
+                itemCount: snapshot.data!.restaurants.length,
+                itemBuilder: (context, index) {
+                  var restaurant = snapshot.data!.restaurants[index];
+                  return _buildRestaurantItem(context, restaurant);
+                },
+              );
+            }
           } else {
             return const Center(child: Text('No data'));
           }
@@ -99,7 +112,7 @@ class _RestaurantListState extends State<RestaurantListPage> {
     );
   }
 
-  Card _buildRestaurantItem(BuildContext context, Restaurant restaurant) {
+  Card _buildRestaurantItem(BuildContext context, RestaurantList restaurant) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
       child: ListTile(
@@ -116,9 +129,18 @@ class _RestaurantListState extends State<RestaurantListPage> {
           restaurant.name,
           style: GoogleFonts.sora(textStyle: const TextStyle(fontSize: 14)),
         ),
-        subtitle: Text(
-          restaurant.city,
-          style: const TextStyle(fontSize: 12),
+        subtitle: Row(
+          children: [
+            Icon(
+              Icons.location_pin,
+              color: Colors.green[700],
+              size: 12,
+            ),
+            Text(
+              restaurant.city,
+              style: const TextStyle(fontSize: 12),
+            ),
+          ],
         ),
         trailing: Container(
             width: 36,

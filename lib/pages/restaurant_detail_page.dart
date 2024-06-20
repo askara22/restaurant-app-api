@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:restaurant_app_2/data/api/api_service_detail.dart';
+import 'package:restaurant_app_2/data/api/api_service.dart';
 import 'package:restaurant_app_2/data/model/detail_restaurant.dart';
-import 'package:restaurant_app_2/data/model/list_restaurant.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class RestaurantDetailPage extends StatelessWidget {
@@ -18,19 +17,21 @@ class RestaurantDetailPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Restaurant Detail'),
       ),
-      body: FutureBuilder<RestaurantDetail>(
-          future: fetchRestaurantDetail(id),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
+      body: FutureBuilder(
+          future: ApiService().fetchRestaurantDetail(id),
+          builder: (context, AsyncSnapshot<RestaurantDetailResult> snapshot) {
+            var state = snapshot.connectionState;
+            if (state == ConnectionState.waiting) {
               return const Center(
-                child: CircularProgressIndicator(),
+                child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.black54)),
               );
             } else if (snapshot.hasError) {
               return Center(
                 child: Text('Error: ${snapshot.error}'),
               );
             } else if (snapshot.hasData) {
-              var restaurant = snapshot.data!;
+              var restaurantDetail = snapshot.data!.restaurant;
               return SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -38,7 +39,7 @@ class RestaurantDetailPage extends StatelessWidget {
                     Hero(
                         tag: '',
                         child: Image.network(
-                            'https://restaurant-api.dicoding.dev/images/large/${restaurant.pictureId}')),
+                            'https://restaurant-api.dicoding.dev/images/large/${restaurantDetail.pictureId}')),
                     Padding(
                       padding: const EdgeInsets.all(10),
                       child: Column(
@@ -47,7 +48,7 @@ class RestaurantDetailPage extends StatelessWidget {
                           Row(
                             children: [
                               Text(
-                                restaurant.name,
+                                restaurantDetail.name,
                                 style: GoogleFonts.sora(
                                     textStyle: const TextStyle(fontSize: 18)),
                               ),
@@ -67,7 +68,7 @@ class RestaurantDetailPage extends StatelessWidget {
                                       size: 16,
                                     ),
                                     Text(
-                                      restaurant.rating.toString(),
+                                      restaurantDetail.rating.toString(),
                                       style: const TextStyle(
                                           color: Colors.white, fontSize: 12),
                                     )
@@ -84,7 +85,7 @@ class RestaurantDetailPage extends StatelessWidget {
                                 size: 16,
                               ),
                               Text(
-                                restaurant.city,
+                                restaurantDetail.city,
                                 style: GoogleFonts.sora(
                                     textStyle: const TextStyle(fontSize: 12)),
                               ),
@@ -92,7 +93,7 @@ class RestaurantDetailPage extends StatelessWidget {
                           ),
                           const SizedBox(height: 10),
                           Text(
-                            restaurant.description,
+                            restaurantDetail.description,
                             style: const TextStyle(
                                 fontSize: 14, letterSpacing: 0.5),
                           ),
@@ -103,7 +104,30 @@ class RestaurantDetailPage extends StatelessWidget {
                             'Foods :',
                             style: TextStyle(fontSize: 16),
                           ),
-                          // _scrollBoxFoods(),
+                          SizedBox(
+                            height: 50,
+                            child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                shrinkWrap: true,
+                                physics: const ClampingScrollPhysics(),
+                                itemCount: restaurantDetail.menus.drinks.length,
+                                itemBuilder: (context, index) {
+                                  return Container(
+                                    margin: const EdgeInsets.all(8),
+                                    width: 160,
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(16),
+                                      color: Colors.green[700],
+                                    ),
+                                    child: Text(
+                                      textAlign: TextAlign.center,
+                                      restaurantDetail.menus.drinks[index].name,
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  );
+                                }),
+                          ),
                           const SizedBox(
                             height: 10,
                           ),
@@ -111,7 +135,31 @@ class RestaurantDetailPage extends StatelessWidget {
                             'Drinks :',
                             style: TextStyle(fontSize: 16),
                           ),
-                          // _scrollBoxDrinks(),
+                          SizedBox(
+                            height: 50,
+                            child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                shrinkWrap: true,
+                                physics: const ClampingScrollPhysics(),
+                                itemCount: restaurantDetail.menus.foods.length,
+                                itemBuilder: (context, index) {
+                                  return Container(
+                                    alignment: Alignment.center,
+                                    margin: const EdgeInsets.all(8),
+                                    width: 150,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(16),
+                                      color: Colors.green[700],
+                                    ),
+                                    child: Text(
+                                      textAlign: TextAlign.center,
+                                      restaurantDetail.menus.foods[index].name,
+                                      style:
+                                          const TextStyle(color: Colors.white),
+                                    ),
+                                  );
+                                }),
+                          )
                         ],
                       ),
                     ),
@@ -124,58 +172,4 @@ class RestaurantDetailPage extends StatelessWidget {
           }),
     );
   }
-
-  // SizedBox _scrollBoxDrinks() {
-  //   return SizedBox(
-  //     height: 50,
-  //     child: ListView.builder(
-  //         scrollDirection: Axis.horizontal,
-  //         shrinkWrap: true,
-  //         physics: const ClampingScrollPhysics(),
-  //         itemCount: restaurant.menus.drinks.length,
-  //         itemBuilder: (context, index) {
-  //           return Container(
-  //             margin: const EdgeInsets.all(8),
-  //             width: 160,
-  //             alignment: Alignment.center,
-  //             decoration: BoxDecoration(
-  //               borderRadius: BorderRadius.circular(16),
-  //               color: Colors.green[700],
-  //             ),
-  //             child: Text(
-  //               textAlign: TextAlign.center,
-  //               restaurant.menus.drinks[index].name,
-  //               style: TextStyle(color: Colors.white),
-  //             ),
-  //           );
-  //         }),
-  //   );
-  // }
-
-  // SizedBox _scrollBoxFoods() {
-  //   return SizedBox(
-  //     height: 50,
-  //     child: ListView.builder(
-  //         scrollDirection: Axis.horizontal,
-  //         shrinkWrap: true,
-  //         physics: const ClampingScrollPhysics(),
-  //         itemCount: restaurant.menus.foods.length,
-  //         itemBuilder: (context, index) {
-  //           return Container(
-  //             alignment: Alignment.center,
-  //             margin: const EdgeInsets.all(8),
-  //             width: 150,
-  //             decoration: BoxDecoration(
-  //               borderRadius: BorderRadius.circular(16),
-  //               color: Colors.green[700],
-  //             ),
-  //             child: Text(
-  //               textAlign: TextAlign.center,
-  //               restaurant.menus.foods[index].name,
-  //               style: TextStyle(color: Colors.white),
-  //             ),
-  //           );
-  //         }),
-  //   );
-  // }
 }
