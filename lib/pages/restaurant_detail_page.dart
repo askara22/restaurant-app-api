@@ -8,11 +8,10 @@ class RestaurantDetailPage extends StatelessWidget {
 
   final String id;
 
-  const RestaurantDetailPage({Key? key, required this.id}) : super(key: key);
+  const RestaurantDetailPage({super.key, required this.id});
 
   @override
   Widget build(BuildContext context) {
-    print('RestaurantDetailPage initialized with id: $id');
     return Scaffold(
       appBar: AppBar(
         title: const Text('Restaurant Detail'),
@@ -24,7 +23,7 @@ class RestaurantDetailPage extends StatelessWidget {
             if (state == ConnectionState.waiting) {
               return const Center(
                 child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.black54)),
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.green)),
               );
             } else if (snapshot.hasError) {
               return Center(
@@ -104,30 +103,7 @@ class RestaurantDetailPage extends StatelessWidget {
                             'Foods :',
                             style: TextStyle(fontSize: 16),
                           ),
-                          SizedBox(
-                            height: 50,
-                            child: ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                shrinkWrap: true,
-                                physics: const ClampingScrollPhysics(),
-                                itemCount: restaurantDetail.menus.drinks.length,
-                                itemBuilder: (context, index) {
-                                  return Container(
-                                    margin: const EdgeInsets.all(8),
-                                    width: 160,
-                                    alignment: Alignment.center,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(16),
-                                      color: Colors.green[700],
-                                    ),
-                                    child: Text(
-                                      textAlign: TextAlign.center,
-                                      restaurantDetail.menus.drinks[index].name,
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                  );
-                                }),
-                          ),
+                          _buildFoodList(restaurantDetail),
                           const SizedBox(
                             height: 10,
                           ),
@@ -135,31 +111,7 @@ class RestaurantDetailPage extends StatelessWidget {
                             'Drinks :',
                             style: TextStyle(fontSize: 16),
                           ),
-                          SizedBox(
-                            height: 50,
-                            child: ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                shrinkWrap: true,
-                                physics: const ClampingScrollPhysics(),
-                                itemCount: restaurantDetail.menus.foods.length,
-                                itemBuilder: (context, index) {
-                                  return Container(
-                                    alignment: Alignment.center,
-                                    margin: const EdgeInsets.all(8),
-                                    width: 150,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(16),
-                                      color: Colors.green[700],
-                                    ),
-                                    child: Text(
-                                      textAlign: TextAlign.center,
-                                      restaurantDetail.menus.foods[index].name,
-                                      style:
-                                          const TextStyle(color: Colors.white),
-                                    ),
-                                  );
-                                }),
-                          )
+                          _buildDrinkList(restaurantDetail)
                         ],
                       ),
                     ),
@@ -169,6 +121,60 @@ class RestaurantDetailPage extends StatelessWidget {
             } else {
               return const Center(child: Text('No data'));
             }
+          }),
+    );
+  }
+
+  SizedBox _buildDrinkList(RestaurantDetail restaurantDetail) {
+    return SizedBox(
+      height: 50,
+      child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          shrinkWrap: true,
+          physics: const ClampingScrollPhysics(),
+          itemCount: restaurantDetail.menus.drinks.length,
+          itemBuilder: (context, index) {
+            return Container(
+              alignment: Alignment.center,
+              margin: const EdgeInsets.all(8),
+              width: 150,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                color: Colors.green[700],
+              ),
+              child: Text(
+                textAlign: TextAlign.center,
+                restaurantDetail.menus.drinks[index].name,
+                style: const TextStyle(color: Colors.white),
+              ),
+            );
+          }),
+    );
+  }
+
+  SizedBox _buildFoodList(RestaurantDetail restaurantDetail) {
+    return SizedBox(
+      height: 50,
+      child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          shrinkWrap: true,
+          physics: const ClampingScrollPhysics(),
+          itemCount: restaurantDetail.menus.foods.length,
+          itemBuilder: (context, index) {
+            return Container(
+              margin: const EdgeInsets.all(8),
+              width: 160,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                color: Colors.green[700],
+              ),
+              child: Text(
+                textAlign: TextAlign.center,
+                restaurantDetail.menus.foods[index].name,
+                style: const TextStyle(color: Colors.white),
+              ),
+            );
           }),
     );
   }
