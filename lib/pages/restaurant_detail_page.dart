@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:restaurant_app_2/data/api/api_service.dart';
 import 'package:restaurant_app_2/data/model/detail_restaurant.dart';
+import 'package:restaurant_app_2/provider/restaurant_detail_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class RestaurantDetailPage extends StatelessWidget {
@@ -12,31 +14,27 @@ class RestaurantDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Restaurant Detail'),
-      ),
-      body: FutureBuilder(
-          future: ApiService().fetchRestaurantDetail(id),
-          builder: (context, AsyncSnapshot<RestaurantDetailResult> snapshot) {
-            var state = snapshot.connectionState;
-            if (state == ConnectionState.waiting) {
+    return ChangeNotifierProvider<RestaurantDetailProvider>(
+      create: (_) => RestaurantDetailProvider(apiService: ApiService(), id: id),
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Restaurant Detail'),
+        ),
+        body: Consumer<RestaurantDetailProvider>(
+          builder: (context, state, _) {
+            if (state.state == ResultState.loading) {
               return const Center(
                 child: CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.green)),
               );
-            } else if (snapshot.hasError) {
-              return Center(
-                child: Text('Error: ${snapshot.error}'),
-              );
-            } else if (snapshot.hasData) {
-              var restaurantDetail = snapshot.data!.restaurant;
+            } else if (state.state == ResultState.hasData) {
+              var restaurantDetail = state.result.restaurant;
               return SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Hero(
-                        tag: '',
+                        tag: restaurantDetail.pictureId,
                         child: Image.network(
                             'https://restaurant-api.dicoding.dev/images/large/${restaurantDetail.pictureId}')),
                     Padding(
@@ -118,10 +116,20 @@ class RestaurantDetailPage extends StatelessWidget {
                   ],
                 ),
               );
+            } else if (state.state == ResultState.noData) {
+              return const Center(
+                child: Text('Restaurant not found'),
+              );
+            } else if (state.state == ResultState.error) {
+              return Center(
+                child: Text('Error: ${state.message}'),
+              );
             } else {
               return const Center(child: Text('No data'));
             }
-          }),
+          },
+        ),
+      ),
     );
   }
 
