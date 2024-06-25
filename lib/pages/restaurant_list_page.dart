@@ -1,14 +1,14 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:restaurant_app_2/data/api/api_service.dart';
 import 'package:restaurant_app_2/provider/restaurant_provider.dart';
 import 'package:restaurant_app_2/widgets/card_restaurant.dart';
 import 'package:restaurant_app_2/widgets/no_internet_ui.dart';
+import 'package:restaurant_app_2/widgets/platform_widget.dart';
 
 class RestaurantListPage extends StatefulWidget {
-  final String title;
-  static const routeName = '/restaurant_list';
-
-  const RestaurantListPage({super.key, required this.title});
+  const RestaurantListPage({super.key});
 
   @override
   _RestaurantListState createState() => _RestaurantListState();
@@ -23,16 +23,15 @@ class _RestaurantListState extends State<RestaurantListPage> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
+  ChangeNotifierProvider<RestaurantProvider> _buildList() {
     return ChangeNotifierProvider(
-      create: (_) => RestaurantProvider(),
+      create: (_) => RestaurantProvider(apiService: ApiService()),
       child: Scaffold(
         appBar: AppBar(
           title: Consumer<RestaurantProvider>(
             builder: (context, provider, _) {
               return !provider.isSearching
-                  ? Text(widget.title)
+                  ? const Text('Restaurant App')
                   : _searchTextField(context, provider);
             },
           ),
@@ -107,6 +106,29 @@ class _RestaurantListState extends State<RestaurantListPage> {
           provider.fetchRestaurantList();
         }
       },
+    );
+  }
+
+  Widget _buildAndroid(BuildContext context) {
+    return Scaffold(
+      body: _buildList(),
+    );
+  }
+
+  Widget _buildIos(BuildContext context) {
+    return CupertinoPageScaffold(
+      navigationBar: const CupertinoNavigationBar(
+        transitionBetweenRoutes: false,
+      ),
+      child: _buildList(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PlatformWidget(
+      androidBuilder: _buildAndroid,
+      iosBuilder: _buildIos,
     );
   }
 }

@@ -4,6 +4,7 @@ import 'package:restaurant_app_2/data/api/api_service.dart';
 import 'package:restaurant_app_2/data/model/detail_restaurant.dart';
 import 'package:restaurant_app_2/provider/restaurant_detail_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:restaurant_app_2/utils/result_state.dart';
 
 class RestaurantDetailPage extends StatelessWidget {
   static const routeName = '/restaurant_detail/';

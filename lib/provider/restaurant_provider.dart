@@ -4,6 +4,8 @@ import 'package:restaurant_app_2/data/api/api_service.dart';
 import 'package:restaurant_app_2/data/model/list_restaurant.dart';
 
 class RestaurantProvider with ChangeNotifier {
+  final ApiService apiService;
+
   bool _isLoading = false;
   bool _isConnected = true;
   String _errorMessage = '';
@@ -18,7 +20,7 @@ class RestaurantProvider with ChangeNotifier {
   bool get isSearching => _isSearching;
   List<RestaurantList> get restaurants => _restaurants;
 
-  RestaurantProvider() {
+  RestaurantProvider({required this.apiService}) {
     _checkConnectivity();
     Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
       _isConnected = (result != ConnectivityResult.none);
