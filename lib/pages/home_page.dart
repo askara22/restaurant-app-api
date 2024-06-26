@@ -2,8 +2,10 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:restaurant_app_2/pages/favorite_page.dart';
+import 'package:restaurant_app_2/pages/restaurant_detail_page.dart';
 import 'package:restaurant_app_2/pages/restaurant_list_page.dart';
 import 'package:restaurant_app_2/pages/settings_page.dart';
+import 'package:restaurant_app_2/utils/notificiation_helper.dart';
 import 'package:restaurant_app_2/widgets/platform_widget.dart';
 
 class HomePage extends StatefulWidget {
@@ -18,6 +20,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _bottomNavIndex = 0;
   static const String _headlineText = 'Restaurant';
+
+  final NotificationHelper _notificationHelper = NotificationHelper();
 
   final List<Widget> _listWidget = [
     const RestaurantListPage(),
@@ -77,10 +81,13 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    _notificationHelper
+        .configureSelectNotificationSubject(RestaurantDetailPage.routeName);
   }
 
   @override
   void dispose() {
+    selectNotificationSubject.close();
     super.dispose();
   }
 
