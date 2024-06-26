@@ -7,6 +7,7 @@ import 'package:restaurant_app_2/provider/database_provider.dart';
 import 'package:restaurant_app_2/provider/restaurant_detail_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:restaurant_app_2/utils/result_state.dart';
+import 'package:restaurant_app_2/widgets/no_internet_ui.dart';
 
 class RestaurantDetailPage extends StatelessWidget {
   static const routeName = '/restaurant_detail/';
@@ -56,6 +57,9 @@ class RestaurantDetailPage extends StatelessWidget {
         ),
         body: Consumer<RestaurantDetailProvider>(
           builder: (context, state, _) {
+            if (!state.isConnected) {
+              return const NoInternetUI();
+            }
             if (state.state == ResultState.loading) {
               return const Center(
                 child: CircularProgressIndicator(
