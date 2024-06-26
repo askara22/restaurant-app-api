@@ -7,21 +7,21 @@ class DatabaseProvider extends ChangeNotifier {
   final DatabaseHelper databaseHelper;
 
   DatabaseProvider({required this.databaseHelper}) {
-    _getBookmarks();
+    _getFavRest();
   }
 
-  late ResultState _state;
-  ResultState get state => _state;
+  ResultState? _state;
+  ResultState? get state => _state;
 
   String _message = '';
   String get message => _message;
 
-  List<RestaurantList> _bookmarks = [];
-  List<RestaurantList> get bookmarks => _bookmarks;
+  List<RestaurantList> _favRest = [];
+  List<RestaurantList> get favRest => _favRest;
 
-  void _getBookmarks() async {
-    _bookmarks = await databaseHelper.getBookmarks();
-    if (_bookmarks.isNotEmpty) {
+  void _getFavRest() async {
+    _favRest = await databaseHelper.getFavRest();
+    if (_favRest.isNotEmpty) {
       _state = ResultState.hasData;
     } else {
       _state = ResultState.noData;
@@ -30,10 +30,10 @@ class DatabaseProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addBookmark(RestaurantList restaurant) async {
+  void addFavRest(RestaurantList restaurant) async {
     try {
-      await databaseHelper.insertBookmark(restaurant);
-      _getBookmarks();
+      await databaseHelper.insertFavRest(restaurant);
+      _getFavRest();
     } catch (e) {
       _state = ResultState.error;
       _message = 'Error: $e';
@@ -42,14 +42,14 @@ class DatabaseProvider extends ChangeNotifier {
   }
 
   Future<bool> isBookmarked(String id) async {
-    final bookmarkedArticle = await databaseHelper.getBookmarkByUrl(id);
-    return bookmarkedArticle.isNotEmpty;
+    final favoriteRestaurant = await databaseHelper.getFavRestById(id);
+    return favoriteRestaurant.isNotEmpty;
   }
 
-  void removeBookmark(String id) async {
+  void removeFavRest(String id) async {
     try {
-      await databaseHelper.removeBookmark(id);
-      _getBookmarks();
+      await databaseHelper.removeFavRest(id);
+      _getFavRest();
     } catch (e) {
       _state = ResultState.error;
       _message = 'Error: $e';

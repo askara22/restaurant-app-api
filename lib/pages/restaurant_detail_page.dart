@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:restaurant_app_2/data/api/api_service.dart';
 import 'package:restaurant_app_2/data/model/detail_restaurant.dart';
+import 'package:restaurant_app_2/data/model/list_restaurant.dart';
+import 'package:restaurant_app_2/provider/database_provider.dart';
 import 'package:restaurant_app_2/provider/restaurant_detail_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:restaurant_app_2/utils/result_state.dart';
@@ -20,6 +22,37 @@ class RestaurantDetailPage extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Restaurant Detail'),
+          actions: [
+            Consumer<DatabaseProvider>(builder: (context, provider, child) {
+              return FutureBuilder<bool>(
+                  future: provider.isBookmarked(id),
+                  builder: (context, snapshot) {
+                    var isBookmarked = snapshot.data ?? false;
+                    return IconButton(
+                        icon: Icon(
+                          isBookmarked ? Icons.favorite : Icons.favorite_border,
+                          color: Colors.red,
+                        ),
+                        onPressed: () {
+                          if (isBookmarked) {
+                            provider.removeFavRest(id);
+                          } else {
+                            var restaurantDetail = context
+                                .read<RestaurantDetailProvider>()
+                                .result
+                                .restaurant;
+                            provider.addFavRest(RestaurantList(
+                                id: restaurantDetail.id,
+                                name: restaurantDetail.name,
+                                description: restaurantDetail.description,
+                                pictureId: restaurantDetail.pictureId,
+                                city: restaurantDetail.city,
+                                rating: restaurantDetail.rating));
+                          }
+                        });
+                  });
+            })
+          ],
         ),
         body: Consumer<RestaurantDetailProvider>(
           builder: (context, state, _) {

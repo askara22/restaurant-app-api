@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:restaurant_app_2/pages/bookmarks_page.dart';
+import 'package:restaurant_app_2/pages/favorite_page.dart';
 import 'package:restaurant_app_2/pages/restaurant_list_page.dart';
 import 'package:restaurant_app_2/widgets/platform_widget.dart';
 
@@ -20,19 +20,21 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _listWidget = [
     const RestaurantListPage(),
-    const BookmarksPage(),
+    const FavoritePage(),
   ];
 
   final List<BottomNavigationBarItem> _bottomNavBarItems = [
     BottomNavigationBarItem(
-      icon: Icon(Platform.isIOS ? CupertinoIcons.news : Icons.public),
+      icon: Icon(Platform.isIOS
+          ? CupertinoIcons.square_stack_3d_up_fill
+          : Icons.food_bank_outlined),
       label: _headlineText,
     ),
     BottomNavigationBarItem(
       icon: Icon(Platform.isIOS
           ? CupertinoIcons.bookmark
-          : Icons.collections_bookmark),
-      label: BookmarksPage.bookmarksTitle,
+          : Icons.featured_play_list_outlined),
+      label: FavoritePage.bookmarksTitle,
     ),
   ];
 

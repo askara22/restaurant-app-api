@@ -5,11 +5,11 @@ import 'package:restaurant_app_2/data/api/api_service.dart';
 import 'package:restaurant_app_2/data/db/database_helper.dart';
 import 'package:restaurant_app_2/pages/home_page.dart';
 import 'package:restaurant_app_2/pages/restaurant_detail_page.dart';
-import 'package:restaurant_app_2/pages/restaurant_list_page.dart';
 import 'package:restaurant_app_2/provider/database_provider.dart';
 import 'package:restaurant_app_2/provider/restaurant_provider.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 

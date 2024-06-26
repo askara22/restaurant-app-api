@@ -6,10 +6,10 @@ import 'package:restaurant_app_2/utils/result_state.dart';
 import 'package:restaurant_app_2/widgets/card_restaurant.dart';
 import 'package:restaurant_app_2/widgets/platform_widget.dart';
 
-class BookmarksPage extends StatelessWidget {
-  static const String bookmarksTitle = 'Bookmarks';
+class FavoritePage extends StatelessWidget {
+  static const String bookmarksTitle = 'My Favorite';
 
-  const BookmarksPage({super.key});
+  const FavoritePage({super.key});
 
   Widget _buildAndroid(BuildContext context) {
     return Scaffold(
@@ -34,9 +34,9 @@ class BookmarksPage extends StatelessWidget {
       builder: (context, provider, child) {
         if (provider.state == ResultState.hasData) {
           return ListView.builder(
-            itemCount: provider.bookmarks.length,
+            itemCount: provider.favRest.length,
             itemBuilder: (context, index) {
-              return CardRestaurant(restaurant: provider.bookmarks[index]);
+              return CardRestaurant(restaurant: provider.favRest[index]);
             },
           );
         } else {
